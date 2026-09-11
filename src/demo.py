@@ -30,21 +30,20 @@ def main() -> None:
 
     print(f"  {'tamper':<22}{'chain only':<14}{'+ checkpoints':<16}affected range")
     print("  " + "-" * 72)
+    missed_by_chain = 0
     for t in TAMPERS:
         tampered = apply_tamper(log.entries, t.name)
         chain = verify_chain_only(tampered)
         full = verify(tampered, log.witness)
         chain_verdict = "MISSED" if chain.ok else "detected"
         full_verdict = "MISSED" if full.ok else "detected"
-        rng = (
-            "-" if full.ok
-            else f"{full.affected_from}-{full.affected_to}"
-            if full.affected_to else str(full.affected_from)
-        )
+        if chain.ok:
+            missed_by_chain += 1
+        rng = "-" if full.ok else full.affected_range
         print(f"  {t.name:<22}{chain_verdict:<14}{full_verdict:<16}{rng}")
 
-    print("\n  The two MISSED cells in the first column are the point.")
-    print("  Both are attacks by someone who bothered to restore internal")
+    print(f"\n  The {missed_by_chain} MISSED cells in the first column are the point.")
+    print("  All are attacks by someone who bothered to restore internal")
     print("  consistency - which is to say, by anyone serious. A chain verifier")
     print("  reports those logs as valid and the investigation proceeds on")
     print("  evidence that has been edited.\n")

@@ -173,13 +173,22 @@ class VerifyResult:
     affected_from: int | None = None
     affected_to: int | None = None
 
+    @property
+    def affected_range(self) -> str:
+        if self.affected_from is None:
+            return "-"
+        if self.affected_to is None or self.affected_to == self.affected_from:
+            return str(self.affected_from)
+        # Normalise: a sequence discontinuity reports (expected, found), which
+        # can read backwards. The range is what a reader needs, not the order
+        # the two numbers happened to be discovered in.
+        lo, hi = sorted((self.affected_from, self.affected_to))
+        return f"{lo}-{hi}"
+
     def describe(self) -> str:
         if self.ok:
             return "log verified"
-        span = ""
-        if self.affected_from is not None:
-            span = f" (sequence {self.affected_from}"
-            span += f"-{self.affected_to})" if self.affected_to else ")"
+        span = "" if self.affected_from is None else f" (sequence {self.affected_range})"
         return f"{self.failure}{span}"
 
 
