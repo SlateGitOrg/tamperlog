@@ -66,7 +66,7 @@ class Entry:
 
 @dataclass(frozen=True)
 class Checkpoint:
-    """A signed commitment to the log's contents up to `seq`."""
+    """A commitment (not signed) to the log's contents up to `seq`."""
 
     seq: int
     root: bytes

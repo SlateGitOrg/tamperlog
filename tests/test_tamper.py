@@ -82,13 +82,14 @@ class TestTamperDetection(unittest.TestCase):
             with self.subTest(tamper=t.name):
                 log = build_log(2_000)
                 tampered = apply_tamper(log.entries, t.name)
-                if t.name == "truncate_naive":
-                    # Dropping the tail leaves a consistent chain too; only the
-                    # checkpoint notices. Recorded honestly here.
-                    self.assertTrue(verify_chain_only(tampered).ok)
-                    self.assertFalse(verify(tampered, log.witness).ok)
-                else:
-                    self.assertFalse(verify_chain_only(tampered).ok)
+                self.assertFalse(verify_chain_only(tampered).ok)
+
+        # Plain tail truncation leaves a consistent chain, so chaining misses
+        # it; only the checkpoint notices.
+        log = build_log(2_000)
+        tampered = apply_tamper(log.entries, "truncate_naive")
+        self.assertTrue(verify_chain_only(tampered).ok)
+        self.assertFalse(verify(tampered, log.witness).ok)
 
     def test_modification_is_pinned_to_the_exact_entry(self):
         log = build_log(1_000)

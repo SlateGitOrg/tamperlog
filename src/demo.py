@@ -43,10 +43,9 @@ def main() -> None:
         print(f"  {t.name:<22}{chain_verdict:<14}{full_verdict:<16}{rng}")
 
     print(f"\n  The {missed_by_chain} MISSED cells in the first column are the point.")
-    print("  All are attacks by someone who bothered to restore internal")
-    print("  consistency - which is to say, by anyone serious. A chain verifier")
-    print("  reports those logs as valid and the investigation proceeds on")
-    print("  evidence that has been edited.\n")
+    print("  Chain-only passes any log that is internally consistent,")
+    print("  including a plain tail truncation, and reports it as valid, so")
+    print("  the investigation proceeds on evidence that has been edited.\n")
 
     print("  Caveat, stated plainly: the witness must live in a store the")
     print("  attacker cannot also rewrite. Co-locate them and this reduces to")

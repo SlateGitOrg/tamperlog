@@ -29,7 +29,7 @@ TAMPERS: tuple[Tamper, ...] = (
     Tamper("insert", "splice an extra entry into the middle", True),
     Tamper("delete_middle", "remove an entry from the middle", True),
     Tamper("reorder", "swap two adjacent entries", True),
-    Tamper("truncate_naive", "drop the tail without fixing up the chain", True),
+    Tamper("truncate_naive", "drop the tail without fixing up the chain", False),
     Tamper(
         "truncate_rechained",
         "drop the tail AND re-chain the remainder so it is internally "

@@ -78,7 +78,7 @@ print(verify(log.entries, log.witness).describe())   # log verified
 
 ## How it works
 
-- **Chain.** `entry_hash = SHA-256(seq || payload || prev_hash)`, starting from a zero genesis hash. This catches modification, insertion, deletion and reordering by an attacker who does not recompute hashes.
+- **Chain.** `entry_hash = SHA-256(seq || payload || prev_hash)`, starting from a zero genesis hash. This catches modification, insertion, deletion and reordering by an attacker who does not recompute hashes. It does not catch a plain tail truncation: dropping the last entries leaves a consistent chain, so only the checkpoints notice.
 - **Checkpoints.** The Merkle root covers every entry hash up to the checkpoint sequence. If the attacker rewrites the log and re-chains it, the root over the surviving entries no longer matches the witnessed one; if the tail is gone, a checkpoint commits to entries that no longer exist.
 - **Range reporting.** Truncation reports `len(entries)+1` through the first missing checkpoint sequence; a root mismatch reports `1` through the checkpoint sequence.
 - **Merkle tree.** Leaves are `SHA-256(0x00 || data)` and internal nodes `SHA-256(0x01 || left || right)`; an odd node is promoted unchanged to the next level.
