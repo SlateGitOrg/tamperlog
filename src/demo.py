@@ -1,4 +1,4 @@
-"""The 60-second artefact: chaining vs chaining + checkpoints.
+"""Demo: plain hash chaining versus chaining plus checkpoints.
 
 Run: python -m src.demo
 """

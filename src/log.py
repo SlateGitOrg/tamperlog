@@ -1,6 +1,6 @@
 """An append-only audit log that detects the attack hash chaining misses.
 
-THE DIFFERENTIATOR LIVES HERE.
+The core of the project: checkpoint verification on top of plain chaining.
 
 Hash chaining is the standard answer to log tampering, and it does detect
 insertion, modification and reordering. It does NOT detect the easiest attack

@@ -1,35 +1,43 @@
 # Architecture
 
-> Fill this in as you build. It is the document you will screen-share in a
-> system-design interview, so write it for that audience.
-
 ## Context
 
-Why this system exists, who uses it, and what they do instead today.
+Audit logs record who did what, and they are the first thing consulted after an incident. Anyone able to write to the log can also edit it, so the log needs to make edits detectable. The usual answer is a hash chain; this project documents where that falls short and closes the gap.
 
 ## Container view
 
-The major runtime pieces and how they talk. Keep the diagram in Mermaid so it
-reviews well in a pull request.
-
 ```mermaid
 flowchart LR
-  A[Source] --> B[Ingest]
-  B --> C[(Store)]
-  C --> D[Service]
-  D --> E[Surface]
+  A["writer"] --> B["TamperLog"]
+  B --> C[("entries<br/>hash chain")]
+  B --> D[("Witness<br/>checkpoint roots")]
+  C --> E["verify()"]
+  D --> E
+  E --> F["VerifyResult"]
 ```
+
+- `TamperLog` (`src/log.py`) holds the ordered entries and records a checkpoint every `checkpoint_every` appends.
+- `Witness` stores `Checkpoint(seq, root, entry_count)` records, keyed by sequence.
+- `verify_chain_only()` is the plain chain verifier; `verify()` adds checkpoint consistency.
+- `src/tamper.py` implements the seven attacks used by the tests and the demo.
 
 ## Key decisions
 
-Record each significant choice, the alternatives considered, and the reason —
-one short section each. The differentiator in the README should appear here as
-a decision with its trade-offs spelled out.
+**Merkle checkpoints in a separate witness.** A chain verifier checks that entries agree with each other, not that none are missing. A checkpoint is a commitment made earlier, outside the attacker's reach, so truncation and re-chained edits contradict it. The trade-off is the dependency on a second store: if an attacker can rewrite both, the guarantee collapses to plain chaining. This is stated in the README rather than implied away.
+
+**Domain-separated hashing.** Leaves and internal nodes use different prefixes (`0x00` and `0x01`) so an internal node cannot be presented as a leaf in an inclusion proof.
+
+**Report a range, not a boolean.** `VerifyResult` carries the failure kind and the affected sequence range, normalised so that it always reads low to high.
+
+**Verifier ordering.** The chain check runs first, so cheap in-chain failures report an exact entry. Checkpoint checks run afterwards and report the checkpoint-granularity range.
 
 ## Failure modes
 
-What breaks, how you detect it, and what the system does instead of lying.
+- Chain break, hash mismatch or sequence discontinuity: reported at the exact entry.
+- A checkpoint beyond the end of the log: reported as truncation, from the first missing sequence to the checkpoint.
+- A recomputed root that differs from the witnessed one: reported as a checkpoint root mismatch from entry 1 to the checkpoint.
+- Entries added after the last checkpoint and then removed are not detectable until a later checkpoint is recorded.
 
-## What is out of scope
+## Out of scope
 
-Name it explicitly. Scope discipline reads as seniority.
+Durable storage, signing or authenticating checkpoints, consistency proofs between checkpoints, and distributing the witness across parties.
